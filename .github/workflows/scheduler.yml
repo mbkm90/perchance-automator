@@ -1,0 +1,66 @@
+# اسم المهمة التلقائية
+name: Run Perchance Generator
+
+# متى يتم تشغيل هذه المهمة
+on:
+  schedule:
+    # هذا يعني "شغّل المهمة كل ساعة، عند الدقيقة صفر"
+    # يمكنك تغيير الجدول الزمني كما تشاء. ابحث عن "Cron syntax" لمعرفة المزيد.
+    # مثال: للتشغيل مرة كل 6 ساعات: "0 */6 * * *"
+    - cron: '0 * * * *'
+  # هذا السطر يسمح لك بتشغيل المهمة يدويًا من تبويب Actions كاختبار
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest # سيتم تشغيل المهمة على نظام لينكس افتراضي
+
+    steps:
+      # الخطوة 1: تحميل نسخة من كود المستودع
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      # الخطوة 2: إعداد بيئة بايثون
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+
+      # الخطوة 3: تثبيت المكتبات المطلوبة
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install requests
+
+      # الخطوة 4: تشغيل السكريبت الخاص بنا
+      - name: Run the generator script
+        run: python run_generator.py
+
+      # الخطوة 5: حفظ التغييرات (الملف النصي الجديد) مرة أخرى في المستودع
+      - name: Commit and push if it changed
+        run: |
+          git config user.name "GitHub Actions Bot"
+          git config user.email "<>"
+          git add latest_result.txt
+          git commit -m "Update latest generator result" -a || echo "No changes to commit"
+          git push
+```5.  اضغط على "Start commit" ثم "Commit new file".
+
+**انتهيت!**
+
+### **كيف ترى النتائج؟**
+
+*   **تلقائيًا:** الآن، كل ساعة، سيقوم GitHub بتشغيل السكريبت تلقائيًا. سيتم تحديث محتوى الملف `latest_result.txt` في مستودعك بالنتيجة الجديدة. يمكنك الدخول إلى المستودع ورؤية المحتوى المحدث.
+*   **يدويًا (للتجربة):**
+    1.  اذهب إلى تبويب "Actions" في مستودعك.
+    2.  على اليسار، اضغط على اسم المهمة "Run Perchance Generator".
+    3.  سترى زرًا يقول "Run workflow"، اضغط عليه ثم "Run workflow" مرة أخرى.
+    4.  انتظر دقيقة، وستجد أن المهمة قد عملت وقامت بتحديث الملف `latest_result.txt`.
+
+---
+
+### **ملاحظة هامة جدًا: حدود الاستخدام**
+
+على الرغم من أن هذه الطريقة مجانية، إلا أن منصة Perchance نفسها قد تفرض **حدودًا على عدد الطلبات** التي يمكنك إجراؤها (Rate Limiting) لمنع إساءة الاستخدام.
+
+**كن محترمًا للخدمة:** لا تجعل المهمة تعمل كل دقيقة. تشغيلها مرة كل ساعة أو بضع مرات في اليوم يعتبر استخدامًا مقبولاً تمامًا.
